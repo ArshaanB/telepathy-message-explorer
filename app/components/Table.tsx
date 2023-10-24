@@ -54,7 +54,7 @@ export default function Component() {
                   <TableRow>
                     <TableHead>Nonce</TableHead>
                     <TableHead>Message Hash</TableHead>
-                    <TableHead>Shortened Message Bytes</TableHead>
+                    <TableHead>Message Bytes</TableHead>
                     <TableHead>Transaction Hash</TableHead>
                   </TableRow>
                 </TableHeader>
