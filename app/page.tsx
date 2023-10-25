@@ -11,8 +11,18 @@ export default function Home() {
   useEffect(() => {
     async function getMessages() {
       const { result: messages } = await getLogs();
-      setMessages(messages);
-      console.log(messages);
+      const updatedMessages = messages.map((message) => {
+        // The topics field in the response to the above request corresponds with
+        // the following tuple: (SentMessageIdentifier, nonce, messageHash) and
+        // data corresponds to messageBytes.
+        return {
+          nonce: message.topics[1],
+          messageHash: message.topics[2],
+          messageBytes: message.data,
+          transactionHash: message.transactionHash
+        };
+      });
+      setMessages(updatedMessages);
     }
 
     getMessages();
