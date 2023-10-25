@@ -11,18 +11,21 @@ export default function Home() {
   useEffect(() => {
     async function getMessages() {
       const { result: messages } = await getLogs();
-      const updatedMessages = messages.map((message) => {
-        // The topics field in the response to the above request corresponds with
-        // the following tuple: (SentMessageIdentifier, nonce, messageHash) and
-        // data corresponds to messageBytes.
-        return {
-          nonce: message.topics[1],
-          messageHash: message.topics[2],
-          messageBytes: message.data,
-          transactionHash: message.transactionHash
-        };
-      });
-      setMessages(updatedMessages);
+      if (messages) {
+        const updatedMessages = messages.map((message) => {
+          // The topics field in the response to the above request corresponds with
+          // the following tuple: (SentMessageIdentifier, nonce, messageHash) and
+          // data corresponds to messageBytes.
+          return {
+            nonce: parseInt(message.topics[1], 16),
+            messageHash: message.topics[2],
+            messageBytes: message.data,
+            transactionHash: message.transactionHash
+          };
+        });
+        setMessages(updatedMessages);
+        console.log("messages: ", messages);
+      }
     }
 
     getMessages();
@@ -33,7 +36,7 @@ export default function Home() {
       <div className="bg-white text-black p-4 text-center">
         <h1 className="text-3xl font-bold">Telepathy Message Explorer</h1>
       </div>
-      <Table />
+      <Table data={messages} />
     </main>
   );
 }

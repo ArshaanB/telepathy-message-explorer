@@ -9,8 +9,13 @@ import {
   TableBody,
   Table
 } from "@/components/ui/table";
+import { useEffect } from "react";
 
-export default function Component() {
+export default function Component({ data }) {
+  useEffect(() => {
+    console.log("data: ", data);
+  });
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <div className="py-5">
@@ -51,32 +56,34 @@ export default function Component() {
             <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Nonce</TableHead>
-                    <TableHead>Message Hash</TableHead>
-                    <TableHead>Message Bytes</TableHead>
-                    <TableHead>Transaction Hash</TableHead>
+                  <TableRow className="flex w-full">
+                    <TableHead className="w-20">Nonce</TableHead>
+                    <TableHead className="break-words overflow-wrap w-96">
+                      Message Hash
+                    </TableHead>
+                    <TableHead className="break-words overflow-wrap w-96">
+                      Message Bytes
+                    </TableHead>
+                    <TableHead className="break-words overflow-wrap w-96">
+                      Transaction Hash
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>123</TableCell>
-                    <TableCell>0x8db...</TableCell>
-                    <TableCell>0x2e3...</TableCell>
-                    <TableCell>0x1f4...</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>124</TableCell>
-                    <TableCell>0x3ed...</TableCell>
-                    <TableCell>0x4fb...</TableCell>
-                    <TableCell>0x5a6...</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>125</TableCell>
-                    <TableCell>0x7ac...</TableCell>
-                    <TableCell>0x6bd...</TableCell>
-                    <TableCell>0x9ce...</TableCell>
-                  </TableRow>
+                  {data.map((item, index) => (
+                    <TableRow key={index} className="flex w-full">
+                      <TableCell className="w-20">{item.nonce}</TableCell>
+                      <TableCell className="break-words overflow-wrap w-96">
+                        {item.messageHash}
+                      </TableCell>
+                      <TableCell className="break-words overflow-wrap w-96">
+                        {item.messageBytes}
+                      </TableCell>
+                      <TableCell className="break-words overflow-wrap w-96">
+                        {item.transactionHash}
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
