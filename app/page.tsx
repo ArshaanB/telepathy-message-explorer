@@ -12,19 +12,26 @@ export default function Home() {
     async function getMessages() {
       const { result: messages } = await getLogs();
       if (messages) {
-        const updatedMessages = messages.map((message) => {
+        const reverseMessages = [];
+        for (
+          let messageIdx = messages.length - 1;
+          messageIdx >= 0;
+          messageIdx--
+        ) {
+          const message = messages[messageIdx];
+
           // The topics field in the response to the above request corresponds with
           // the following tuple: (SentMessageIdentifier, nonce, messageHash) and
           // data corresponds to messageBytes.
-          return {
+          const refinedMessage = {
             nonce: parseInt(message.topics[1], 16),
             messageHash: message.topics[2],
             messageBytes: message.data,
             transactionHash: message.transactionHash
           };
-        });
-        setMessages(updatedMessages);
-        console.log("messages: ", messages);
+          reverseMessages.push(refinedMessage);
+        }
+        setMessages(reverseMessages);
       }
     }
 
