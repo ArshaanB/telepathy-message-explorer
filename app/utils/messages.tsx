@@ -8,8 +8,8 @@ export async function getLogs() {
       method: "eth_getLogs",
       params: [
         {
-          fromBlock: "0x118DF98",
-          toBlock: "0x11906A7",
+          fromBlock: "0x1191704",
+          toBlock: "0x1193E13",
           address: "0x41EA857C32c8Cb42EEFa00AF67862eCFf4eB795a",
           topics: [
             "0xe5944a34d67c652e0ebf2304b48432aae0b55e40f79ba8a21a4d7054c169ffac"

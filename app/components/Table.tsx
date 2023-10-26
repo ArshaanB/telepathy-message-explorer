@@ -9,12 +9,24 @@ import {
   TableBody,
   Table
 } from "@/components/ui/table";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Component({ data }) {
+  const [isExpanded, setIsExpanded] = useState([]);
+
+  function updateIsExpandedForIndex(index) {
+    const isExpandedIntermediate = [...isExpanded];
+    isExpandedIntermediate[index] = !isExpandedIntermediate[index];
+    setIsExpanded(isExpandedIntermediate);
+  }
+
   useEffect(() => {
-    console.log("data: ", data);
-  });
+    const isExpandedIntermediate = [];
+    for (let indexOfData = 0; indexOfData < data.length; indexOfData++) {
+      isExpandedIntermediate.push(false);
+    }
+    setIsExpanded(isExpandedIntermediate);
+  }, [data]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -77,7 +89,15 @@ export default function Component({ data }) {
                         {item.messageHash}
                       </TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
-                        {item.messageBytes}
+                        {isExpanded[index]
+                          ? item.messageBytes
+                          : item.messageBytes.substring(0, 25)}
+                        <button
+                          className="border border-gray-600 ml-2 px-2 py-2 rounded"
+                          onClick={() => updateIsExpandedForIndex(index)}
+                        >
+                          {isExpanded[index] ? "Show Less" : "Show More"}
+                        </button>
                       </TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
                         {item.transactionHash}
