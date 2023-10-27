@@ -37,7 +37,7 @@ export default function Component({ data }) {
         </p>
       </div>
       <div className="mb-4">
-        <form className="flex flex-wrap gap-4">
+        <form className="flex flex-wrap gap-4 items-stretch">
           <Label className="flex-grow">
             <span>From Block</span>
             <Input
@@ -54,12 +54,15 @@ export default function Component({ data }) {
               type="number"
             />
           </Label>
-          <Button
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-            type="submit"
-          >
-            Filter
-          </Button>
+
+          <div>
+            <Button
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded h-full"
+              type="submit"
+            >
+              Filter
+            </Button>
+          </div>
         </form>
       </div>
       <div className="flex flex-col">
