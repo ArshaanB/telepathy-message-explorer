@@ -24,23 +24,26 @@ export default function Component() {
     getCurrentBlock().then((currentBlock) => setCurrentBlock(currentBlock));
   }, []);
 
-  const fetchMessages = ({ pageParam = 0 }) => {
+  async function fetchMessages({ pageParam = 0 }) {
     const fromBlock = currentBlock - (pageParam + 1) * 10000;
     const toBlock = currentBlock - pageParam * 10000;
-    return getLogs(fromBlock, toBlock);
-  };
+    const logs = await getLogs(fromBlock, toBlock);
+    return logs.result;
+  }
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery(["messages"], fetchMessages, {
-      getNextPageParam: (lastPage, pages) =>
-        lastPage.length > 0 ? pages.length : false,
+      getNextPageParam: (lastPage, pages) => {
+        return lastPage.length > 0 ? pages.length : false;
+      },
       // Only run the query when currentBlock is not null
       enabled: currentBlock !== null
     });
 
   useEffect(() => {
     if (data) {
-      const newData = data.pages[data.pages.length - 1].result;
+      const newData = data.pages[data.pages.length - 1];
+
       formatMessages(newData).then((formattedMessages) =>
         setBuffer((oldBuffer) => [...oldBuffer, ...formattedMessages])
       );
