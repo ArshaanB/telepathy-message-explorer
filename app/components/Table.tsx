@@ -1,5 +1,5 @@
-// import { useState, useEffect } from "react";
-// import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,44 +13,57 @@ import {
   Table
 } from "@/components/ui/table";
 
-// import { getLogs } from "../utils/messages";
+import { getLogs, getCurrentBlock, formatMessages } from "../utils/messages";
 
 export default function Component() {
-  // const [buffer, setBuffer] = useState([]);
-  // const [pageIndex, setPageIndex] = useState(0);
+  const [buffer, setBuffer] = useState([]);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [currentBlock, setCurrentBlock] = useState(null);
 
-  // const fetchMessages = ({ pageParam = 0 }) =>
-  //   getLogs(pageParam * 10000, (pageParam + 1) * 10000 - 1);
+  useEffect(() => {
+    getCurrentBlock().then((currentBlock) => setCurrentBlock(currentBlock));
+  }, []);
 
-  // const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-  //   useInfiniteQuery(["messages"], fetchMessages, {
-  //     getNextPageParam: (lastPage, pages) =>
-  //       lastPage.length > 0 ? pages.length : false
-  //   });
+  const fetchMessages = ({ pageParam = 0 }) => {
+    const fromBlock = currentBlock - (pageParam + 1) * 10000;
+    const toBlock = currentBlock - pageParam * 10000;
+    return getLogs(fromBlock, toBlock);
+  };
 
-  // useEffect(() => {
-  //   if (data) {
-  //     setBuffer((oldBuffer) => [...oldBuffer, ...data.pages.flat()]);
-  //   }
-  // }, [data]);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery(["messages"], fetchMessages, {
+      getNextPageParam: (lastPage, pages) =>
+        lastPage.length > 0 ? pages.length : false,
+      // Only run the query when currentBlock is not null
+      enabled: currentBlock !== null
+    });
 
-  // const nextPage = () => {
-  //   const fetchUntilEnoughMessages = async () => {
-  //     while (buffer.length < (pageIndex + 1) * 10) {
-  //       await fetchNextPage();
-  //     }
-  //   };
+  useEffect(() => {
+    if (data) {
+      const newData = data.pages[data.pages.length - 1].result;
+      formatMessages(newData).then((formattedMessages) =>
+        setBuffer((oldBuffer) => [...oldBuffer, ...formattedMessages])
+      );
+    }
+  }, [data]);
 
-  //   fetchUntilEnoughMessages().then(() => {
-  //     setPageIndex((oldIndex) => oldIndex + 1);
-  //   });
-  // };
+  const nextPage = () => {
+    const fetchUntilEnoughMessages = async () => {
+      while (buffer.length < (pageIndex + 1) * 10) {
+        await fetchNextPage();
+      }
+    };
 
-  // const previousPage = () => {
-  //   setPageIndex((oldIndex) => Math.max(oldIndex - 1, 0));
-  // };
+    fetchUntilEnoughMessages().then(() => {
+      setPageIndex((oldIndex) => oldIndex + 1);
+    });
+  };
 
-  // const currentPage = buffer.slice(pageIndex * 10, (pageIndex + 1) * 10);
+  const previousPage = () => {
+    setPageIndex((oldIndex) => Math.max(oldIndex - 1, 0));
+  };
+
+  const currentPage = buffer?.slice(pageIndex * 10, (pageIndex + 1) * 10);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -109,28 +122,32 @@ export default function Component() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* {data.map((item, index) => (
+                  {currentPage?.map((item, index) => (
                     <TableRow key={index} className="flex w-full">
                       <TableCell className="w-20">{item.nonce}</TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
                         {item.messageHash}
                       </TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
-                        {isExpanded[index]
-                          ? item.messageBytes
-                          : item.messageBytes.substring(0, 25)}
+                        {
+                          false //isExpanded[index]
+                            ? item.messageBytes
+                            : item.messageBytes // item.messageBytes.substring(0, 25)
+                        }
                         <button
                           className="border border-gray-600 ml-2 px-2 py-2 rounded"
-                          onClick={() => updateIsExpandedForIndex(index)}
+                          // onClick={() => updateIsExpandedForIndex(index)}
                         >
-                          {isExpanded[index] ? "Show Less" : "Show More"}
+                          {false //isExpanded[index]
+                            ? "Show Less"
+                            : "Show More"}
                         </button>
                       </TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
                         {item.transactionHash}
                       </TableCell>
                     </TableRow>
-                  ))} */}
+                  ))}
                 </TableBody>
               </Table>
             </div>
@@ -142,22 +159,22 @@ export default function Component() {
           <Button
             className="border-gray-300 text-gray-500 hover:text-gray-700"
             variant="outline"
-            // onClick={previousPage}
-            // disabled={pageIndex === 0}
+            onClick={previousPage}
+            disabled={pageIndex === 0}
           >
             Previous
           </Button>
           <Button
             className="border-gray-300 text-gray-500 hover:text-gray-700"
             variant="outline"
-            // onClick={nextPage}
-            // disabled={!hasNextPage || isFetchingNextPage}
+            onClick={nextPage}
+            disabled={!hasNextPage || isFetchingNextPage}
           >
-            {/* {isFetchingNextPage
+            {isFetchingNextPage
               ? "Loading more..."
               : hasNextPage
               ? "Next"
-              : "No more results"} */}
+              : "No more results"}
           </Button>
         </nav>
       </div>

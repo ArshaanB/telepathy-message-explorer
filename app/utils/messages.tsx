@@ -30,17 +30,7 @@ export async function getLogs(fromBlock: number, toBlock: number) {
   return result.json();
 }
 
-export async function getMessages(
-  setMessages: (messages: MessageType[]) => void
-) {
-  const core = new Core({
-    endpointUrl: "https://docs-demo.quiknode.pro/"
-  });
-  const currentBlock = Number(await core.client.getBlockNumber());
-  const { result: messages } = await getLogs(
-    currentBlock - 10000,
-    currentBlock
-  );
+export async function formatMessages(messages) {
   if (messages) {
     const reverseMessages = [];
     for (let messageIdx = messages.length - 1; messageIdx >= 0; messageIdx--) {
@@ -57,6 +47,15 @@ export async function getMessages(
       };
       reverseMessages.push(refinedMessage);
     }
-    setMessages(reverseMessages);
+    return reverseMessages;
   }
+  return messages;
+}
+
+export async function getCurrentBlock() {
+  const core = new Core({
+    endpointUrl: "https://docs-demo.quiknode.pro/"
+  });
+  const currentBlock = Number(await core.client.getBlockNumber());
+  return currentBlock;
 }
