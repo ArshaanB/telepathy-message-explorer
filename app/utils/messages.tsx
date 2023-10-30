@@ -1,3 +1,5 @@
+import { MessageType } from "./Types";
+
 export async function getLogs() {
   const result = await fetch("https://docs-demo.quiknode.pro/", {
     method: "POST",
@@ -22,4 +24,28 @@ export async function getLogs() {
   });
 
   return result.json();
+}
+
+export async function getMessages(
+  setMessages: (messages: MessageType[]) => void
+) {
+  const { result: messages } = await getLogs();
+  if (messages) {
+    const reverseMessages = [];
+    for (let messageIdx = messages.length - 1; messageIdx >= 0; messageIdx--) {
+      const message = messages[messageIdx];
+
+      // The topics field in the response to the above request corresponds with
+      // the following tuple: (SentMessageIdentifier, nonce, messageHash) and
+      // data corresponds to messageBytes.
+      const refinedMessage = {
+        nonce: parseInt(message.topics[1], 16),
+        messageHash: message.topics[2],
+        messageBytes: message.data,
+        transactionHash: message.transactionHash
+      };
+      reverseMessages.push(refinedMessage);
+    }
+    setMessages(reverseMessages);
+  }
 }

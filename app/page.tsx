@@ -3,39 +3,14 @@
 import { useState, useEffect } from "react";
 import Table from "./components/Table";
 
-import { getLogs } from "./utils/messages";
+import { MessageType } from "./utils/Types";
+import { getMessages } from "./utils/messages";
 
 export default function Home() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
 
   useEffect(() => {
-    async function getMessages() {
-      const { result: messages } = await getLogs();
-      if (messages) {
-        const reverseMessages = [];
-        for (
-          let messageIdx = messages.length - 1;
-          messageIdx >= 0;
-          messageIdx--
-        ) {
-          const message = messages[messageIdx];
-
-          // The topics field in the response to the above request corresponds with
-          // the following tuple: (SentMessageIdentifier, nonce, messageHash) and
-          // data corresponds to messageBytes.
-          const refinedMessage = {
-            nonce: parseInt(message.topics[1], 16),
-            messageHash: message.topics[2],
-            messageBytes: message.data,
-            transactionHash: message.transactionHash
-          };
-          reverseMessages.push(refinedMessage);
-        }
-        setMessages(reverseMessages);
-      }
-    }
-
-    getMessages();
+    getMessages(setMessages);
   }, []);
 
   return (
