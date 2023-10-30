@@ -1,3 +1,6 @@
+// import { useState, useEffect } from "react";
+// import { useInfiniteQuery } from "@tanstack/react-query";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -9,24 +12,45 @@ import {
   TableBody,
   Table
 } from "@/components/ui/table";
-import { useEffect, useState } from "react";
 
-export default function Component({ data }) {
-  const [isExpanded, setIsExpanded] = useState([]);
+// import { getLogs } from "../utils/messages";
 
-  function updateIsExpandedForIndex(index) {
-    const isExpandedIntermediate = [...isExpanded];
-    isExpandedIntermediate[index] = !isExpandedIntermediate[index];
-    setIsExpanded(isExpandedIntermediate);
-  }
+export default function Component() {
+  // const [buffer, setBuffer] = useState([]);
+  // const [pageIndex, setPageIndex] = useState(0);
 
-  useEffect(() => {
-    const isExpandedIntermediate = [];
-    for (let indexOfData = 0; indexOfData < data.length; indexOfData++) {
-      isExpandedIntermediate.push(false);
-    }
-    setIsExpanded(isExpandedIntermediate);
-  }, [data]);
+  // const fetchMessages = ({ pageParam = 0 }) =>
+  //   getLogs(pageParam * 10000, (pageParam + 1) * 10000 - 1);
+
+  // const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  //   useInfiniteQuery(["messages"], fetchMessages, {
+  //     getNextPageParam: (lastPage, pages) =>
+  //       lastPage.length > 0 ? pages.length : false
+  //   });
+
+  // useEffect(() => {
+  //   if (data) {
+  //     setBuffer((oldBuffer) => [...oldBuffer, ...data.pages.flat()]);
+  //   }
+  // }, [data]);
+
+  // const nextPage = () => {
+  //   const fetchUntilEnoughMessages = async () => {
+  //     while (buffer.length < (pageIndex + 1) * 10) {
+  //       await fetchNextPage();
+  //     }
+  //   };
+
+  //   fetchUntilEnoughMessages().then(() => {
+  //     setPageIndex((oldIndex) => oldIndex + 1);
+  //   });
+  // };
+
+  // const previousPage = () => {
+  //   setPageIndex((oldIndex) => Math.max(oldIndex - 1, 0));
+  // };
+
+  // const currentPage = buffer.slice(pageIndex * 10, (pageIndex + 1) * 10);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -85,7 +109,7 @@ export default function Component({ data }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.map((item, index) => (
+                  {/* {data.map((item, index) => (
                     <TableRow key={index} className="flex w-full">
                       <TableCell className="w-20">{item.nonce}</TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
@@ -106,7 +130,7 @@ export default function Component({ data }) {
                         {item.transactionHash}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ))} */}
                 </TableBody>
               </Table>
             </div>
@@ -118,17 +142,51 @@ export default function Component({ data }) {
           <Button
             className="border-gray-300 text-gray-500 hover:text-gray-700"
             variant="outline"
+            // onClick={previousPage}
+            // disabled={pageIndex === 0}
           >
             Previous
           </Button>
           <Button
             className="border-gray-300 text-gray-500 hover:text-gray-700"
             variant="outline"
+            // onClick={nextPage}
+            // disabled={!hasNextPage || isFetchingNextPage}
           >
-            Next
+            {/* {isFetchingNextPage
+              ? "Loading more..."
+              : hasNextPage
+              ? "Next"
+              : "No more results"} */}
           </Button>
         </nav>
       </div>
     </div>
   );
 }
+
+/*
+Previous Implementation: 
+
+data was previously passed in from parent:
+const [messages, setMessages] = useState<MessageType[]>([]);
+useEffect(() => {
+  getMessages(setMessages);
+}, []);
+
+const [isExpanded, setIsExpanded] = useState([]);
+
+function updateIsExpandedForIndex(index) {
+  const isExpandedIntermediate = [...isExpanded];
+  isExpandedIntermediate[index] = !isExpandedIntermediate[index];
+  setIsExpanded(isExpandedIntermediate);
+}
+
+useEffect(() => {
+  const isExpandedIntermediate = [];
+  for (let indexOfData = 0; indexOfData < data.length; indexOfData++) {
+    isExpandedIntermediate.push(false);
+  }
+  setIsExpanded(isExpandedIntermediate);
+}, [data]);
+*/
