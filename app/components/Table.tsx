@@ -19,6 +19,9 @@ export default function Component() {
   const BLOCK_RANGE = 10000;
   const PAGE_SIZE = 10;
 
+  const [displayPage, setDisplayPage] = useState("current");
+  const [fromBlockFilter, setFromBlockFilter] = useState(null);
+  const [toBlockFilter, setToBlockFilter] = useState(null);
   const [buffer, setBuffer] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [currentBlock, setCurrentBlock] = useState(null);
@@ -86,6 +89,11 @@ export default function Component() {
     (pageIndex + 1) * PAGE_SIZE
   );
 
+  const filteredPage = buffer?.filter(
+    (item) =>
+      item.blockNumber >= fromBlockFilter && item.blockNumber <= toBlockFilter
+  );
+
   function updateIsExpandedForIndex(index) {
     const paginatedIndex = pageIndex * PAGE_SIZE + index;
     const isExpandedIntermediate = [...buffer];
@@ -103,13 +111,21 @@ export default function Component() {
         </p>
       </div>
       <div className="mb-4">
-        <form className="flex flex-wrap gap-4 items-stretch">
+        <form
+          className="flex flex-wrap gap-4 items-stretch"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setDisplayPage("filtered");
+          }}
+        >
           <Label className="flex-grow">
             <span>From Block</span>
             <Input
               className="mt-1"
               placeholder="Enter block number"
               type="number"
+              value={fromBlockFilter}
+              onChange={(e) => setFromBlockFilter(e.target.value)}
             />
           </Label>
           <Label className="flex-grow">
@@ -118,6 +134,8 @@ export default function Component() {
               className="mt-1"
               placeholder="Enter block number"
               type="number"
+              value={toBlockFilter}
+              onChange={(e) => setToBlockFilter(e.target.value)}
             />
           </Label>
 
@@ -151,7 +169,10 @@ export default function Component() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentPage?.map((item, index) => (
+                  {(displayPage === "current"
+                    ? currentPage
+                    : filteredPage
+                  )?.map((item, index) => (
                     <TableRow key={index} className="flex w-full">
                       <TableCell className="w-20">{item.nonce}</TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
@@ -180,28 +201,30 @@ export default function Component() {
         </div>
       </div>
       <div className="mt-4">
-        <nav className="flex justify-between text-sm">
-          <Button
-            className="border-gray-300 text-gray-500 hover:text-gray-700"
-            variant="outline"
-            onClick={previousPage}
-            disabled={pageIndex === 0}
-          >
-            Previous
-          </Button>
-          <Button
-            className="border-gray-300 text-gray-500 hover:text-gray-700"
-            variant="outline"
-            onClick={nextPage}
-            disabled={!hasNextPage || isFetchingNextPage}
-          >
-            {isFetchingNextPage
-              ? "Loading more..."
-              : hasNextPage
-              ? "Next"
-              : "No more results"}
-          </Button>
-        </nav>
+        {displayPage === "current" ? (
+          <nav className="flex justify-between text-sm">
+            <Button
+              className="border-gray-300 text-gray-500 hover:text-gray-700"
+              variant="outline"
+              onClick={previousPage}
+              disabled={pageIndex === 0}
+            >
+              Previous
+            </Button>
+            <Button
+              className="border-gray-300 text-gray-500 hover:text-gray-700"
+              variant="outline"
+              onClick={nextPage}
+              disabled={!hasNextPage || isFetchingNextPage}
+            >
+              {isFetchingNextPage
+                ? "Loading more..."
+                : hasNextPage
+                ? "Next"
+                : "No more results"}
+            </Button>
+          </nav>
+        ) : null}
       </div>
     </div>
   );

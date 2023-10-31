@@ -4,4 +4,5 @@ export type Message = {
   messageBytes: string; // The actual content of the message, in bytes.
   transactionHash: string; // The hash of the transaction in which this message was included.
   isExpanded: boolean; // Whether or not the message is expanded in the table.
+  blockNumber: number; // The block number in which this message was included.
 };

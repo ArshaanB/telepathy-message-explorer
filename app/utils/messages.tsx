@@ -73,7 +73,8 @@ export function formatMessages(messages) {
         messageHash: message.topics[2],
         messageBytes: message.data,
         transactionHash: message.transactionHash,
-        isExpanded: false
+        isExpanded: false,
+        blockNumber: parseInt(message.blockNumber, 16)
       };
       reverseMessages.push(refinedMessage);
     }
