@@ -48,19 +48,28 @@ export default function Component() {
     if (data) {
       const newData = data.pages[data.pages.length - 1];
 
-      const formattedMessages = formatMessages(newData);
-      setBuffer((oldBuffer) => [...oldBuffer, ...formattedMessages]);
+      if (newData) {
+        const formattedMessages = formatMessages(newData);
+        setBuffer((oldBuffer) => [...oldBuffer, ...formattedMessages]);
+      }
     }
   }, [data]);
 
   const nextPage = () => {
-    const fetchUntilEnoughMessages = async () => {
-      while (buffer.length < (pageIndex + 1) * 10) {
-        await fetchNextPage();
+    const fetchUntilEnoughMessages = async (currentBuffer) => {
+      if (currentBuffer.length < (pageIndex + 2) * 10) {
+        const newBuffer = await fetchNextPage();
+        const totalLengthOfNewBuffer = newBuffer.data.pages.reduce(
+          (sum, page) => {
+            return sum + (Array.isArray(page) ? page.length : 0);
+          },
+          0
+        );
+        await fetchUntilEnoughMessages(totalLengthOfNewBuffer);
       }
     };
 
-    fetchUntilEnoughMessages().then(() => {
+    fetchUntilEnoughMessages(buffer).then(() => {
       setPageIndex((oldIndex) => oldIndex + 1);
     });
   };
