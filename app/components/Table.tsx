@@ -24,6 +24,8 @@ export default function Component() {
     getCurrentBlock().then((currentBlock) => setCurrentBlock(currentBlock));
   }, []);
 
+  // For a given pageParam (and it's unique 10,000 block range), returns all the
+  //  relevant logs within that block range.
   async function fetchMessages({ pageParam = 0 }) {
     const fromBlock = currentBlock - (pageParam + 1) * 10000;
     const toBlock = currentBlock - pageParam * 10000;
@@ -33,10 +35,12 @@ export default function Component() {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery(["messages"], fetchMessages, {
+      // pages holds how many calls we have made already, and each page holds
+      //  the logs for a 10,000 block range.
       getNextPageParam: (lastPage, pages) => {
-        return lastPage.length > 0 ? pages.length : false;
+        return pages.length;
       },
-      // Only run the query when currentBlock is not null
+      // Only run the query when currentBlock is not null.
       enabled: currentBlock !== null
     });
 
@@ -44,9 +48,8 @@ export default function Component() {
     if (data) {
       const newData = data.pages[data.pages.length - 1];
 
-      formatMessages(newData).then((formattedMessages) =>
-        setBuffer((oldBuffer) => [...oldBuffer, ...formattedMessages])
-      );
+      const formattedMessages = formatMessages(newData);
+      setBuffer((oldBuffer) => [...oldBuffer, ...formattedMessages]);
     }
   }, [data]);
 

@@ -30,16 +30,16 @@ export async function getLogs(fromBlock: number, toBlock: number) {
   return result.json();
 }
 
-export async function formatMessages(messages) {
+export function formatMessages(messages) {
   if (messages) {
-    const reverseMessages = [];
+    const reverseMessages: MessageType[] = [];
     for (let messageIdx = messages.length - 1; messageIdx >= 0; messageIdx--) {
       const message = messages[messageIdx];
 
       // The topics field in the response to the above request corresponds with
       // the following tuple: (SentMessageIdentifier, nonce, messageHash) and
       // data corresponds to messageBytes.
-      const refinedMessage = {
+      const refinedMessage: MessageType = {
         nonce: parseInt(message.topics[1], 16),
         messageHash: message.topics[2],
         messageBytes: message.data,
