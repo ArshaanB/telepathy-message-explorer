@@ -16,6 +16,9 @@ import {
 import { getLogs, getCurrentBlock, formatMessages } from "../utils/messages";
 
 export default function Component() {
+  const BLOCK_RANGE = 10000;
+  const PAGE_SIZE = 10;
+
   const [buffer, setBuffer] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [currentBlock, setCurrentBlock] = useState(null);
@@ -27,8 +30,8 @@ export default function Component() {
   // For a given pageParam (and it's unique 10,000 block range), returns all the
   //  relevant logs within that block range.
   async function fetchMessages({ pageParam = 0 }) {
-    const fromBlock = currentBlock - (pageParam + 1) * 10000;
-    const toBlock = currentBlock - pageParam * 10000;
+    const fromBlock = currentBlock - (pageParam + 1) * BLOCK_RANGE;
+    const toBlock = currentBlock - pageParam * BLOCK_RANGE;
     const logs = await getLogs(fromBlock, toBlock);
     return logs.result;
   }
@@ -78,7 +81,18 @@ export default function Component() {
     setPageIndex((oldIndex) => Math.max(oldIndex - 1, 0));
   };
 
-  const currentPage = buffer?.slice(pageIndex * 10, (pageIndex + 1) * 10);
+  const currentPage = buffer?.slice(
+    pageIndex * PAGE_SIZE,
+    (pageIndex + 1) * PAGE_SIZE
+  );
+
+  function updateIsExpandedForIndex(index) {
+    const paginatedIndex = pageIndex * PAGE_SIZE + index;
+    const isExpandedIntermediate = [...buffer];
+    isExpandedIntermediate[paginatedIndex].isExpanded =
+      !isExpandedIntermediate[paginatedIndex].isExpanded;
+    setBuffer(isExpandedIntermediate);
+  }
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -144,18 +158,14 @@ export default function Component() {
                         {item.messageHash}
                       </TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
-                        {
-                          false //isExpanded[index]
-                            ? item.messageBytes
-                            : item.messageBytes // item.messageBytes.substring(0, 25)
-                        }
+                        {item.isExpanded
+                          ? item.messageBytes
+                          : item.messageBytes.substring(0, 25)}
                         <button
                           className="border border-gray-600 ml-2 px-2 py-2 rounded"
-                          // onClick={() => updateIsExpandedForIndex(index)}
+                          onClick={() => updateIsExpandedForIndex(index)}
                         >
-                          {false //isExpanded[index]
-                            ? "Show Less"
-                            : "Show More"}
+                          {item.isExpanded ? "Show Less" : "Show More"}
                         </button>
                       </TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
@@ -196,29 +206,3 @@ export default function Component() {
     </div>
   );
 }
-
-/*
-Previous Implementation: 
-
-data was previously passed in from parent:
-const [messages, setMessages] = useState<MessageType[]>([]);
-useEffect(() => {
-  getMessages(setMessages);
-}, []);
-
-const [isExpanded, setIsExpanded] = useState([]);
-
-function updateIsExpandedForIndex(index) {
-  const isExpandedIntermediate = [...isExpanded];
-  isExpandedIntermediate[index] = !isExpandedIntermediate[index];
-  setIsExpanded(isExpandedIntermediate);
-}
-
-useEffect(() => {
-  const isExpandedIntermediate = [];
-  for (let indexOfData = 0; indexOfData < data.length; indexOfData++) {
-    isExpandedIntermediate.push(false);
-  }
-  setIsExpanded(isExpandedIntermediate);
-}, [data]);
-*/

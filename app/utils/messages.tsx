@@ -72,7 +72,8 @@ export function formatMessages(messages) {
         nonce: parseInt(message.topics[1], 16),
         messageHash: message.topics[2],
         messageBytes: message.data,
-        transactionHash: message.transactionHash
+        transactionHash: message.transactionHash,
+        isExpanded: false
       };
       reverseMessages.push(refinedMessage);
     }
