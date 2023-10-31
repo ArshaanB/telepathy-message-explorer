@@ -6,7 +6,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Telepathy Message Explorer",
-  description: "Simply and elegantly see messages secured by proof of consensus"
+  description:
+    "Explorer to browse messages sent from Ethereum to any chain powered by Telepathy and Succinct"
 };
 
 export default function RootLayout({
