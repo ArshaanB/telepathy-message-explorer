@@ -3,6 +3,7 @@
 A message explorer for the Telepathy protocol. View sent messages alongside metadata relevant to that sent message in a paginated table.
 
 Note: We minimize the number of RPC calls thanks to some caching.
+
 Extra: You can filter to only show messages between 2 blocks from messages you've already seen.
 
 ## Screenshots and Demo Video
@@ -11,8 +12,9 @@ Extra: You can filter to only show messages between 2 blocks from messages you'v
 ![Still 2](./2.png)
 ![Still 3](./3.png)
 ![Still 4](./4.png)
-[Demo Video](./telepathy_demo.mov)
-telepathy_demo.mov contains the demo video.
+
+[Demo Video on Google Drive](https://drive.google.com/file/d/1O-yXa0cjsPKOEHyEtOJmxyNt6yB5z2Wa/view?usp=sharing)
+[Demo Video in Github Repo](./telepathy_demo.mov)
 
 ## Getting Started
 
