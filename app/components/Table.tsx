@@ -35,8 +35,8 @@ export default function Component() {
    * - pageIndex: The current page index.
    */
   const [displayPage, setDisplayPage] = useState("current");
-  const [fromBlockFilter, setFromBlockFilter] = useState(undefined);
-  const [toBlockFilter, setToBlockFilter] = useState(undefined);
+  const [fromBlockFilter, setFromBlockFilter] = useState(null);
+  const [toBlockFilter, setToBlockFilter] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [currentPageIsExpanded, setCurrentPageIsExpanded] = useState(
     TenFalseBooleans()
@@ -45,9 +45,14 @@ export default function Component() {
   // Fetches from a paginated API with param `id`.
   const fetchData = async ({ pageParam = 0 }) => {
     const res = await fetch(
-      new Request(createURL(`/api/messages?id=${pageParam}`), {
-        method: "GET"
-      })
+      new Request(
+        createURL(
+          `/api/messages?id=${pageParam}&fromBlockFilter=${fromBlockFilter}&toBlockFilter=${toBlockFilter}`
+        ),
+        {
+          method: "GET"
+        }
+      )
     );
     const responseData = await res.json();
     const messages = responseData.data;
@@ -60,7 +65,7 @@ export default function Component() {
    */
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["messages"],
+      queryKey: ["messages", fromBlockFilter, toBlockFilter],
       queryFn: fetchData,
       getNextPageParam: (lastPage, pages) => {
         return lastPage.cursor;
@@ -126,7 +131,6 @@ export default function Component() {
           className="flex flex-wrap gap-4 items-stretch"
           onSubmit={(e) => {
             e.preventDefault();
-            setDisplayPage("filtered");
           }}
         >
           <Label className="flex-grow">
