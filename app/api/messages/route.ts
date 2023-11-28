@@ -34,18 +34,26 @@ export async function GET(request: NextRequest) {
         });
         const lastBlock = lastElement ? lastElement.blockNumber : await getCurrentBlock();
         const messagesBatch = await fetchMessagesBatch(0, lastBlock, 0);
-        const messagesBatchFormatted = formatMessages(messagesBatch); 
+        const messagesBatchFormatted = formatMessages(messagesBatch);
         
-        const createMessages = messagesBatchFormatted.map((message) => {
-            return prisma.message.create({
-                data: {
-                    nonce: message.nonce,
-                    messageHash: message.messageHash,
-                    messageBytes: message.messageBytes,
-                    transactionHash: message.transactionHash,
-                    blockNumber: message.blockNumber,
+        const createMessages = messagesBatchFormatted.map(async (message: any) => {
+            // Ensures no duplicate messages are created.
+            const existingMessage = await prisma.message.findUnique({
+                where: {
+                    nonce: message.nonce
                 }
-            })
+            });
+            if (!existingMessage) {
+                return prisma.message.create({
+                    data: {
+                        nonce: message.nonce,
+                        messageHash: message.messageHash,
+                        messageBytes: message.messageBytes,
+                        transactionHash: message.transactionHash,
+                        blockNumber: message.blockNumber,
+                    }
+                })
+            }
         });
 
         await Promise.all(createMessages);

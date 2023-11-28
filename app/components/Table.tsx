@@ -15,13 +15,10 @@ import {
 } from "@/components/ui/table";
 
 import { createURL } from "../utils/general";
-import {
-  fetchMessagesOld,
-  getCurrentBlock,
-  formatMessages
-} from "../utils/messages";
 
-const PAGE_SIZE = 10;
+function TenFalseBooleans() {
+  return new Array(10).fill(false);
+}
 
 /**
  * This component displays a table of messages. It allows users to browse and
@@ -36,48 +33,26 @@ export default function Component() {
    * - toBlockFilter: The ending block number for the filter.
    * - buffer: The buffer that holds the messages data.
    * - pageIndex: The current page index.
-   * - currentBlock: The current block number.
    */
   const [displayPage, setDisplayPage] = useState("current");
   const [fromBlockFilter, setFromBlockFilter] = useState(undefined);
   const [toBlockFilter, setToBlockFilter] = useState(undefined);
-  const [buffer, setBuffer] = useState([]);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [currentBlock, setCurrentBlock] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPageIsExpanded, setCurrentPageIsExpanded] = useState(
+    TenFalseBooleans()
+  );
 
-  const { data: messages1 } = useQuery({
-    queryKey: ["messages1"],
-    queryFn: async () => {
-      const res = await fetch(
-        new Request(createURL("/api/messages?id=55"), {
-          method: "GET"
-        })
-      );
-      const responseData = await res.json();
-      const messages = responseData.data;
-      return messages;
-    }
-  });
-
-  useEffect(() => {
-    console.log("messages1 is: ", messages1);
-  }, [messages1]);
-
-  /**
-   * Fetch the current block number when the component mounts.
-   */
-  useEffect(() => {
-    const fetchCurrentBlock = async () => {
-      try {
-        const currentBlock = await getCurrentBlock();
-        setCurrentBlock(currentBlock);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchCurrentBlock();
-  }, []);
+  // Fetches from a paginated API with param `id`.
+  const fetchData = async ({ pageParam = 0 }) => {
+    const res = await fetch(
+      new Request(createURL(`/api/messages?id=${pageParam}`), {
+        method: "GET"
+      })
+    );
+    const responseData = await res.json();
+    const messages = responseData.data;
+    return messages;
+  };
 
   /**
    * An infinite query to fetch messages data.
@@ -86,78 +61,40 @@ export default function Component() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
       queryKey: ["messages"],
-      queryFn: fetchMessagesOld,
-      // pages holds how many calls we have made already, and each page holds
-      //  the logs for a 10,000 block range.
+      queryFn: fetchData,
       getNextPageParam: (lastPage, pages) => {
-        return pages.length;
+        return lastPage.cursor;
       },
-      getPreviousPageParam: (firstPage, pages) => {
-        return pages.length;
-      },
-      enabled: currentBlock !== null,
       initialPageParam: 0
     });
 
-  /**
-   * Formats and adds the new data to the buffer when the data changes.
-   */
   useEffect(() => {
-    if (data) {
-      const newData = data.pages[data.pages.length - 1];
-
-      if (newData) {
-        const formattedMessages = formatMessages(newData);
-        setBuffer((oldBuffer) => [...oldBuffer, ...formattedMessages]);
-      }
-    }
+    console.log("data is: ", data);
   }, [data]);
 
   /**
-   * Function to go to the next page. It fetches more messages data until there
-   * are enough messages for the next page.
+   * Function to go to the next page. It fetches more messages if not enough
+   *  data is available.
    */
-  const nextPage = () => {
-    const fetchUntilEnoughMessages = async (currentBuffer) => {
-      if (currentBuffer.length < (pageIndex + 2) * PAGE_SIZE) {
-        const newBuffer = await fetchNextPage();
-        const totalLengthOfNewBuffer = newBuffer.data.pages.reduce(
-          (sum, page) => {
-            return sum + (Array.isArray(page) ? page.length : 0);
-          },
-          0
-        );
-        await fetchUntilEnoughMessages(totalLengthOfNewBuffer);
-      }
-    };
-
-    fetchUntilEnoughMessages(buffer).then(() => {
-      setPageIndex((oldIndex) => oldIndex + 1);
-    });
+  const nextPage = (event) => {
+    event.preventDefault();
+    if (data.pages.length <= currentPage + 1) {
+      // Prevents flickering of the page and transporting viewer to the top
+      // of the page.
+      fetchNextPage().then(() => {
+        setCurrentPage(currentPage + 1);
+      });
+    } else {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
   /**
    * Function to go to the previous page.
    */
   const previousPage = () => {
-    setPageIndex((oldIndex) => Math.max(oldIndex - 1, 0));
+    setCurrentPage(currentPage - 1);
   };
-
-  /**
-   * The current page data.
-   */
-  const currentPage = buffer?.slice(
-    pageIndex * PAGE_SIZE,
-    (pageIndex + 1) * PAGE_SIZE
-  );
-
-  /**
-   * The filtered page data.
-   */
-  const filteredPage = buffer?.filter(
-    (item) =>
-      item.blockNumber >= fromBlockFilter && item.blockNumber <= toBlockFilter
-  );
 
   /**
    * Toggles the expanded state of a message at a specific index.
@@ -165,12 +102,16 @@ export default function Component() {
    * @param {number} index The index of the message
    */
   function updateIsExpandedForIndex(index) {
-    const paginatedIndex = pageIndex * PAGE_SIZE + index;
-    const isExpandedIntermediate = [...buffer];
-    isExpandedIntermediate[paginatedIndex].isExpanded =
-      !isExpandedIntermediate[paginatedIndex].isExpanded;
-    setBuffer(isExpandedIntermediate);
+    const intermediateIsExpanded = [...currentPageIsExpanded];
+    intermediateIsExpanded[index] = !intermediateIsExpanded[index];
+
+    setCurrentPageIsExpanded(intermediateIsExpanded);
   }
+
+  // Resets the expanded state of the messages when the page changes.
+  useEffect(() => {
+    setCurrentPageIsExpanded(TenFalseBooleans());
+  }, [currentPage]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -239,24 +180,23 @@ export default function Component() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(displayPage === "current"
-                    ? currentPage
-                    : filteredPage
-                  )?.map((item, index) => (
+                  {data?.pages[currentPage]?.messages.map((item, index) => (
                     <TableRow key={index} className="flex w-full">
                       <TableCell className="w-20">{item.nonce}</TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
                         {item.messageHash}
                       </TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
-                        {item.isExpanded
+                        {currentPageIsExpanded[index]
                           ? item.messageBytes
                           : item.messageBytes.substring(0, 25)}
                         <button
                           className="border border-gray-600 ml-2 px-2 py-2 rounded"
                           onClick={() => updateIsExpandedForIndex(index)}
                         >
-                          {item.isExpanded ? "Show Less" : "Show More"}
+                          {currentPageIsExpanded[index]
+                            ? "Show Less"
+                            : "Show More"}
                         </button>
                       </TableCell>
                       <TableCell className="break-words overflow-wrap w-96">
@@ -283,14 +223,14 @@ export default function Component() {
               className="border-gray-300 text-gray-500 hover:text-gray-700"
               variant="outline"
               onClick={previousPage}
-              disabled={pageIndex === 0}
+              disabled={currentPage === 0}
             >
               Previous
             </Button>
             <Button
               className="border-gray-300 text-gray-500 hover:text-gray-700"
               variant="outline"
-              onClick={nextPage}
+              onClick={(event) => nextPage(event)}
               disabled={!hasNextPage || isFetchingNextPage}
             >
               {isFetchingNextPage
