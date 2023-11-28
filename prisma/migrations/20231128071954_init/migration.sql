@@ -4,8 +4,6 @@ CREATE TABLE "Message" (
     "nonce" INTEGER NOT NULL,
     "messageHash" TEXT NOT NULL,
     "messageBytes" TEXT NOT NULL,
-    "transactionHash" TEXT NOT NULL
+    "transactionHash" TEXT NOT NULL,
+    "blockNumber" INTEGER NOT NULL
 );
-
--- CreateIndex
-CREATE UNIQUE INDEX "Message_nonce_key" ON "Message"("nonce");

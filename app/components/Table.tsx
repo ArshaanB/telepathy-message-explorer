@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
   Table
 } from "@/components/ui/table";
 
+import { createURL } from "../utils/general";
 import { getLogs, getCurrentBlock, formatMessages } from "../utils/messages";
 
 const BLOCK_RANGE = 10000;
@@ -40,6 +41,24 @@ export default function Component() {
   const [buffer, setBuffer] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [currentBlock, setCurrentBlock] = useState(null);
+
+  const { data: messages1 } = useQuery({
+    queryKey: ["messages1"],
+    queryFn: async () => {
+      const res = await fetch(
+        new Request(createURL("/api/messages?id=123"), {
+          method: "GET"
+        })
+      );
+      const responseData = await res.json();
+      const messages = responseData.data;
+      return messages;
+    }
+  });
+
+  useEffect(() => {
+    console.log("messages1 is: ", messages1);
+  }, [messages1]);
 
   /**
    * Fetch the current block number when the component mounts.
