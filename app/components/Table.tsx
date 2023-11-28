@@ -78,14 +78,19 @@ export default function Component() {
    * It only runs when the current block number is not null.
    */
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useInfiniteQuery(["messages"], fetchMessages, {
+    useInfiniteQuery({
+      queryKey: ["messages"],
+      queryFn: fetchMessages,
       // pages holds how many calls we have made already, and each page holds
       //  the logs for a 10,000 block range.
       getNextPageParam: (lastPage, pages) => {
         return pages.length;
       },
-      // Only run the query when currentBlock is not null.
-      enabled: currentBlock !== null
+      getPreviousPageParam: (firstPage, pages) => {
+        return pages.length;
+      },
+      enabled: currentBlock !== null,
+      initialPageParam: 0
     });
 
   /**
