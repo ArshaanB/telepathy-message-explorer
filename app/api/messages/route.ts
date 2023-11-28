@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { PrismaClient } from '@prisma/client'
+
+import { formatMessages, fetchMessagesBatch, getCurrentBlock } from "../../utils/messages";
 
 const prisma = new PrismaClient()
 
@@ -23,7 +24,33 @@ export async function GET(request: NextRequest) {
         };
     }
     
-    const messages = await prisma.message.findMany(findOptions);
+    let messages = await prisma.message.findMany(findOptions);
+
+    if (messages.length < 10) {
+        const lastElement = await prisma.message.findUnique({
+            where: {
+                id: myCursor
+            }
+        });
+        const lastBlock = lastElement ? lastElement.blockNumber : await getCurrentBlock();
+        const messagesBatch = await fetchMessagesBatch(0, lastBlock, 0);
+        const messagesBatchFormatted = formatMessages(messagesBatch); 
+        
+        const createMessages = messagesBatchFormatted.map((message) => {
+            return prisma.message.create({
+                data: {
+                    nonce: message.nonce,
+                    messageHash: message.messageHash,
+                    messageBytes: message.messageBytes,
+                    transactionHash: message.transactionHash,
+                    blockNumber: message.blockNumber,
+                }
+            })
+        });
+
+        await Promise.all(createMessages);
+        messages = await prisma.message.findMany(findOptions);
+    }
 
     const lastMessage = messages[9];
     myCursor = lastMessage.id;

@@ -15,9 +15,12 @@ import {
 } from "@/components/ui/table";
 
 import { createURL } from "../utils/general";
-import { getLogs, getCurrentBlock, formatMessages } from "../utils/messages";
+import {
+  fetchMessagesOld,
+  getCurrentBlock,
+  formatMessages
+} from "../utils/messages";
 
-const BLOCK_RANGE = 10000;
 const PAGE_SIZE = 10;
 
 /**
@@ -46,7 +49,7 @@ export default function Component() {
     queryKey: ["messages1"],
     queryFn: async () => {
       const res = await fetch(
-        new Request(createURL("/api/messages?id=123"), {
+        new Request(createURL("/api/messages?id=55"), {
           method: "GET"
         })
       );
@@ -77,29 +80,13 @@ export default function Component() {
   }, []);
 
   /**
-   * Callback to fetch messages data. It calculates the block range based on the
-   * current block number and the page parameter.
-   *
-   * @returns {Promise<Array>} The fetched messages data.
-   */
-  const fetchMessages = useCallback(
-    async ({ pageParam = 0 }) => {
-      const fromBlock = currentBlock - (pageParam + 1) * BLOCK_RANGE;
-      const toBlock = currentBlock - pageParam * BLOCK_RANGE;
-      const logs = await getLogs(fromBlock, toBlock);
-      return logs.result;
-    },
-    [currentBlock]
-  );
-
-  /**
    * An infinite query to fetch messages data.
    * It only runs when the current block number is not null.
    */
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
       queryKey: ["messages"],
-      queryFn: fetchMessages,
+      queryFn: fetchMessagesOld,
       // pages holds how many calls we have made already, and each page holds
       //  the logs for a 10,000 block range.
       getNextPageParam: (lastPage, pages) => {

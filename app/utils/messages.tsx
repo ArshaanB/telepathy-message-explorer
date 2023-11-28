@@ -5,6 +5,7 @@ import { Message } from "./Types";
 const QUICKNODE_API_URL =
   process.env.NEXT_PUBLIC_QUICKNODE_API_URL ||
   "https://docs-demo.quiknode.pro/";
+const BLOCK_RANGE = 10000;
 
 /**
  * Fetches logs from the Succinct contract on the Ethereum blockchain using the
@@ -94,4 +95,63 @@ export async function getCurrentBlock() {
   });
   const currentBlock = Number(await core.client.getBlockNumber());
   return currentBlock;
+}
+
+/**
+ * Callback to fetch messages data. It calculates the block range based on the
+ * current block number and the page parameter.
+ *
+ * @returns {Promise<Array>} The fetched messages data.
+ */
+export async function fetchMessagesOld({ pageParam = 0 }) {
+  const currentBlock = await getCurrentBlock();
+
+  const fromBlock = currentBlock - (pageParam + 1) * BLOCK_RANGE;
+  const toBlock = currentBlock - pageParam * BLOCK_RANGE;
+  const logs = await getLogs(fromBlock, toBlock);
+  return logs.result;
+}
+
+/**
+ * Callback to fetch messages data. It calculates the block range based on the
+ * current block number and the page parameter.
+ *
+ * @returns {Promise<Array>} The fetched messages data.
+ */
+export async function fetchMessages(mostRecentBlock: number) {
+  try {
+    const fromBlock = mostRecentBlock - BLOCK_RANGE;
+    const toBlock = mostRecentBlock - 1;
+    const logs = await getLogs(fromBlock, toBlock);
+    return logs.result;
+  } catch (error) {
+    console.error("Error in fetchMessages:", error);
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function fetchMessagesBatch(
+  entriesSoFar: number,
+  lastBlock: number,
+  depth: number
+) {
+  await sleep(1000);
+  const messages = await fetchMessages(lastBlock);
+  if (messages == undefined) {
+    return [];
+  } else if (depth >= 10) {
+    return [];
+  } else if (entriesSoFar + messages.length >= 10) {
+    return messages;
+  } else {
+    const moreMessages = await fetchMessagesBatch(
+      entriesSoFar + messages.length,
+      lastBlock - BLOCK_RANGE,
+      depth + 1
+    );
+    return [...messages, ...moreMessages];
+  }
 }
